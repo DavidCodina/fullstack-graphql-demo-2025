@@ -1,0 +1,286 @@
+import {
+  useQuery
+  // , ApolloError
+} from '@apollo/client'
+import { useNavigate } from 'react-router'
+
+import { GET_TODOS } from 'queries'
+import { useTitle } from 'hooks'
+import { Alert, Button, HR, Page, PageContainer, Spinner } from 'components'
+import { Todo } from 'types'
+
+type GetTodosData = {
+  result: Todo[]
+}
+
+// type GraphQLErrors = ApolloError['graphQLErrors']
+// type GraphQLError = GraphQLErrors[number]
+
+/* ========================================================================
+                                  PageTodos
+======================================================================== */
+
+const PageTodos = () => {
+  useTitle('Todos')
+  const navigate = useNavigate()
+
+  ///////////////////////////////////////////////////////////////////////////
+  //
+  // Supose we throw an error on the server:
+  //
+  //   if (context?.user) {
+  //     throw new GraphQLError('You did a bad thing!', {
+  //       extensions: { code: 'BAD_THING',  user: context?.user }
+  //     })
+  //   }
+  //
+  // In this case, we will get back an ApolloError:
+  //
+  //   export declare class ApolloError extends Error {
+  //     name: string;
+  //     message: string;
+  //     graphQLErrors: GraphQLErrors;
+  //     protocolErrors: ReadonlyArray<{ message: string; extensions?: GraphQLErrorExtensions[]; }>;
+  //     clientErrors: ReadonlyArray<Error>;
+  //     networkError: Error | ServerParseError | ServerError | null;
+  //     extraInfo: any;
+  //   }
+  //
+  // An ApolloError can contain any number of nested errors:
+  //
+  //   {
+  //     name: 'ApolloError',
+  //     message: 'You did a bad thing!',
+  //     graphQLErrors: [
+  //       {
+  //         message: 'You did a bad thing!',
+  //        locations: Array(1),
+  //        path: Array(1),
+  //         extensions: {code: 'BAD_THING', user: { ... }}
+  //       }
+  //     ],
+  //     protocolErrors: [],
+  //     clientErrors: [],
+  //     networkError: null,
+  //     extraInfo: undefined,
+  //   }
+  //
+  // Note the following:
+  //
+  //   1. If there's an error, then name and message are guaranteed.
+  //
+  //   2. Generally, we're looking for an error in error.graphQLErrors.
+  //      This kind of error results from manually throwing a GraphQLError on the server.
+  //      It will also result from an internal server error:
+  //
+  //      However, if the server is down we'll or if our GET_TODOS query
+  //      is malformed, or sometimes if our ApolloClient is configured incorrectly
+  //      then get back a networkError. In that case, we'll automatically get back:
+  //
+  //        { extensions: { code: 'INTERNAL_SERVER_ERROR' }, message: '...'}
+  //
+  //   The last point is important because it means there's no reason to wrap your resolvers
+  //   in a try/catch UNLESS you want very fine-grained control over what the extensions.code
+  //   and extensions.message are or if you want to add additional metadata to the sentry log,
+  //   or ignore certain errors.
+  //
+  //   3. error.graphQLErrors can contain multiple instances of GraphQLError.
+  //      Generally, we're just looking for the first error.
+  //      However, it's entirely possible to have multiple errors.
+  //      For example, let's say that we have the following CreateTodoInput
+  //
+  //        input CreateTodoInput {
+  //          title: String!
+  //          body: String!
+  //        }
+  //
+  //      Then let's say the client has poor client-side validation and ultimately ends
+  //      up sending back an empty input object.
+  //
+  //        const [createTodo, { loading: creatingTodo }] = useMutation(CREATE_TODO, {
+  //          variables: { input: {} }
+  //        })
+  //
+  //      This would result in the following graphQLErrors:
+  //
+  //        [
+  //          {
+  //            message: "Variable \"$input\" got invalid value {}; Field \"title\" of required type \"String!\" was not provided.",
+  //            extensions: { code: 'BAD_USER_INPUT'
+  //          },
+  //          {
+  //            message: "Variable \"$input\" got invalid value {}; Field \"body\" of required type \"String!\" was not provided.",
+  //            extensions: { code: 'BAD_USER_INPUT'
+  //          },
+  //        ]
+  //
+  //      I actually NEVER want to run into this situation. It's nice that GraphQL performs rudimentary validation of this
+  //      kind, but I actually prefer to handle all the validation in the resolver myself, then manually return 'errors as data'
+  //      or a GraphQLError. That way we have a consistent error handling strategy.
+  //
+  ///////////////////////////////////////////////////////////////////////////
+
+  const {
+    data,
+    error,
+    loading
+    // refetch: refetchTodos
+  } = useQuery<GetTodosData>(GET_TODOS, {
+    onError(errors) {
+      const { graphQLErrors, networkError, clientErrors, protocolErrors } =
+        errors
+      if (import.meta.env.DEV === true) {
+        console.log('errors from todos useQuery()')
+        console.log({
+          graphQLErrors,
+          networkError,
+          clientErrors,
+          protocolErrors
+        })
+      }
+    }
+  })
+
+  /* ======================
+          return
+  ====================== */
+  // Kind of cool, this official docs video implements a custom QueryResult
+  // component that wraps any JSX that renders data. QueryResult is essentially
+  // a componentized version that will render error, loading, or allow children
+  // to pass through: https://www.apollographql.com/tutorials/lift-off-part1/10-the-usequery-hook
+
+  const renderTodos = () => {
+    if (error) {
+      return (
+        <Alert
+          className='alert-red mx-auto mb-12 max-w-2xl'
+          leftSection={
+            <svg
+              style={{ height: '3em' }}
+              fill='currentColor'
+              viewBox='0 0 16 16'
+            >
+              <path d='M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z' />
+              <path d='M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z' />
+            </svg>
+          }
+        >
+          <Alert.Heading>Error:</Alert.Heading>
+
+          <p className='text-sm'>
+            {error?.message ? error?.message : 'Unable to get the todos!'}
+          </p>
+        </Alert>
+      )
+    }
+
+    if (loading) {
+      return (
+        <div className='flex min-h-[300px] items-center justify-center'>
+          <Spinner className='border-[2.5px] text-violet-800' size={50} />
+        </div>
+      )
+    }
+
+    const todos = data?.result
+
+    if (!Array.isArray(todos) || (Array.isArray(todos) && todos.length === 0)) {
+      return (
+        <Alert
+          className='alert-blue mx-auto mb-12 max-w-2xl'
+          leftSection={
+            <svg
+              style={{ height: '3em' }}
+              fill='currentColor'
+              viewBox='0 0 16 16'
+            >
+              <path d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16' />
+              <path d='m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0' />
+            </svg>
+          }
+        >
+          <Alert.Heading>Info:</Alert.Heading>
+
+          <p className='text-sm'>Looks like you don't have any todos!</p>
+        </Alert>
+      )
+    }
+
+    //# Update the UI for this...
+    if (Array.isArray(todos)) {
+      return todos.map((todo: any) => {
+        return (
+          <div
+            key={todo.id}
+            className='mb-3 rounded-lg border border-blue-500 bg-white p-3'
+            onClick={() => {
+              navigate(`/todos/${todo.id}`)
+            }}
+            //# Visible, non-interactive elements with click handlers must have at least one keyboard listener.eslintjsx-a11y/click-events-have-key-events)
+            onKeyDown={(_e) => {
+              // console.log(e)
+            }}
+            role='button'
+            tabIndex={0}
+            style={{ cursor: 'pointer' }}
+          >
+            {todo.title}
+          </div>
+        )
+      })
+    }
+
+    return null
+  }
+
+  /* ======================
+          return
+  ====================== */
+
+  return (
+    <Page>
+      <PageContainer>
+        <h1
+          className='text-center text-5xl font-black'
+          style={{ position: 'relative', marginBottom: 24 }}
+        >
+          <span
+            style={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              textShadow:
+                '0px 0px 1px rgba(0,0,0,1), 0px 0px 1px rgba(0,0,0,1)',
+              width: '100%',
+              height: '100%'
+            }}
+          >
+            Todos
+          </span>
+          <span
+            className='bg-gradient-to-r from-violet-700 to-sky-400 bg-clip-text text-transparent'
+            style={{
+              position: 'relative'
+            }}
+          >
+            Todos
+          </span>
+        </h1>
+
+        <HR style={{ marginBottom: 50 }} />
+
+        <Button
+          color='green'
+          className='btn-green btn-sm mx-auto mb-4 block'
+          onClick={() => navigate('/todos/create')}
+        >
+          Create A Todo
+        </Button>
+
+        {renderTodos()}
+      </PageContainer>
+    </Page>
+  )
+}
+
+export default PageTodos
