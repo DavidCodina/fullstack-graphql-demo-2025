@@ -13,6 +13,7 @@ export * from './isResponseObject'
 export * from './CustomError'
 export * from './zod'
 export * from './queueMacroTask'
+export * from './getFormErrors'
 
 /* ======================
       isFileArray()

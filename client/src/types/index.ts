@@ -1,3 +1,8 @@
+import { ApolloError } from '@apollo/client'
+
+export type GraphQLErrors = ApolloError['graphQLErrors']
+export type GraphQLError = GraphQLErrors[number]
+
 // This should match the Code type used on the server.
 export type Code =
   | 'OK'

@@ -3,7 +3,7 @@ import { useMutation } from '@apollo/client'
 import { toast } from 'react-toastify'
 import { Eye, EyeOff, TriangleAlert } from 'lucide-react'
 
-import { cn } from 'utils'
+import { cn, getFormErrors } from 'utils'
 import { Button } from 'components'
 import { useAuthContext } from 'contexts'
 import { CREATE_USER } from 'mutations'
@@ -119,16 +119,12 @@ const RegisterForm = () => {
           // extraInfo
         } = error
 
-        const formErrors = graphQLErrors.find((error) => {
-          return error?.extensions?.code === 'FORM_ERRORS'
-        })?.extensions?.formErrors as
-          | {
-              name?: string
-              email?: string
-              password?: string
-              confirmPassword?: string
-            }
-          | undefined
+        const formErrors = getFormErrors<{
+          name?: string
+          email?: string
+          password?: string
+          confirmPassword?: string
+        }>(graphQLErrors)
 
         if (formErrors && typeof formErrors === 'object') {
           if (formErrors.name) {

@@ -4,7 +4,7 @@ import { useQuery, useMutation } from '@apollo/client'
 import { toast } from 'react-toastify'
 import { TriangleAlert } from 'lucide-react'
 
-import { cn } from 'utils'
+import { cn, getFormErrors } from 'utils'
 import { Alert, Button, Spinner } from 'components'
 import { UPDATE_TODO } from 'mutations'
 import { GET_TODO } from 'queries/todoQueries'
@@ -107,11 +107,11 @@ export const UpdateTodoForm = ({ style }: UpdateTodoFormProps) => {
           // extraInfo
         } = error
 
-        const formErrors = graphQLErrors.find((error) => {
-          return error?.extensions?.code === 'FORM_ERRORS'
-        })?.extensions?.formErrors as
-          | { title?: string; body?: string; completed?: string }
-          | undefined
+        const formErrors = getFormErrors<{
+          title?: string
+          body?: string
+          completed?: string
+        }>(graphQLErrors)
 
         if (formErrors && typeof formErrors === 'object') {
           if (formErrors.title) {
