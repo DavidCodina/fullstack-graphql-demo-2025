@@ -1,41 +1,56 @@
 import { GraphQLError } from 'graphql'
 import { ObjectId } from 'mongodb'
-// https://www.apollographql.com/docs/apollo-server/data/errors/
-// https://www.youtube.com/watch?v=OtmKA3-e9Z8
 
 import { authenticate } from '../../../authenticate' // Avoid circular dependency with relative import
 import { codes } from '../../../codes' // Avoid circular dependency with relative import
 import { User } from 'types'
-
-//# The cascade deletion of todos should be on a hook, not here.
 
 /* ========================================================================
 
 ======================================================================== */
 ///////////////////////////////////////////////////////////////////////////
 //
-//
 // Note: this mutation is returning UnsafeUser (similar to updating and currentUser).
 // No userId is required here because the mutation is intended for
 // the user to delete themself (not for admin).
 //
-// When we delete the user, we also want to delete any associated todos.
-// That's pretty simple. Sometimes handling the related entities is a bit
-// more complex. For example, in the Laith Harb Udemy tutorial there was
-// an eCommerce demo that had products and product categories. Each product
-// potentially had an associated category. In the case of deleting a category, we
-// don't want to delete all associated products. Instead, we need to perform an
-// updateMany() operation such that for all products with that category, we would
-// then change the categoryId field value to undefined, or whatever it is we need to do in
-// Mongoose to remove the optional field.
+//   mutation DeleteUser {
+//     result: deleteUser {
+//       id
+//       name
+//       email
+//       role
+//       todos {
+//         id
+//         title
+//       }
+//       createdAt
+//       updatedAt
+//     }
+//   }
 //
 ///////////////////////////////////////////////////////////////////////////
 
 export const deleteUser = authenticate(
-  async (_parent, args, context): Promise<User> => {
+  async (_parent, _args, context): Promise<User> => {
     const userId = context?.user?._id
 
-    // ObjectId Check
+    /* ======================
+          ObjectId Check
+    ====================== */
+    ///////////////////////////////////////////////////////////////////////////
+    //
+    // ⚠️ For custom application-level errors, it's recommended to use your own unique codes...
+    // Initially, I was using 'BAD_REQUEST', but in Apollo that typically means the entire
+    // request was malformed, unparseable, or fundamentally incorrect before it even got to
+    // the point of your resolver's business logic. The more appropriate built-in error
+    // would be 'BAD_USER_INPUT'. However, even then it's still probably better to have some
+    // kind of custom error code for this that differentiates it from system-generated errors.
+    // Thus, in this application 'INVALID_INPUT' is used for custom errors when there is bad
+    // user input.
+    //
+    ///////////////////////////////////////////////////////////////////////////
+
     if (!ObjectId.isValid(userId)) {
       throw new GraphQLError('Invalid ObjectId.', {
         extensions: {
@@ -52,28 +67,24 @@ export const deleteUser = authenticate(
       })
       .exec()
 
-    // Existence Check
+    /* ======================
+         Existence Check
+    ====================== */
     // This preempts this error:  "Cannot read properties of null (reading 'deleteOne')"
+
     if (!user) {
       throw new GraphQLError('Resource not found.', {
         extensions: { code: codes.NOT_FOUND }
       })
     }
 
-    await context.models.Todo.deleteMany({ user: userId }).lean().exec() // => { acknowledged: true, deletedCount: 3 }
+    // Deletion cascades should be handled by Mongoose middleware hooks, not locally.
+    // ❌ await context.models.Todo.deleteMany({ user: userId }).lean().exec()
+    //    => { acknowledged: true, deletedCount: 3 }
 
-    //# deleteTodo implements an authorization check.
-    //# Do we need that here?
-
-    const _deleteResult = await user.deleteOne() // => { acknowledged: true, deletedCount: 1 }
-
-    // On more than one occassion I've seen people return true for the value of
-    // a deleted entity. I'm not a big fan of that. I prefer to return the entity.
-
-    // Here we could just pass back deletedUser and hope that the
-    // associated TypeDef doesn't expose anything sensitive/unsafe.
-    // However, it'b better to make sure we remove any sensitive data
-    // in advance.
+    // You do not need an explicit "is this user allowed to delete this user" check
+    // because you literally just used that userId to fetch the user.
+    /* const _deleteResult = */ await user.deleteOne() // => { acknowledged: true, deletedCount: 1 }
 
     return user
   }

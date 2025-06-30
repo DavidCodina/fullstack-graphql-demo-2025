@@ -5,7 +5,6 @@ import {
 import { codes } from './codes' // Avoid circular dependency with relative import
 import { Context, ContextWithUser } from 'types'
 
-//! type ContextWithUser = Required<Context>
 type AuthenticatedResolver = GraphQLFieldResolver<any, ContextWithUser, any>
 type AuthenticationChecker = GraphQLFieldResolver<any, Context, any>
 type Authenticate = (next: AuthenticatedResolver) => AuthenticationChecker

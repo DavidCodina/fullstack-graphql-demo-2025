@@ -107,8 +107,6 @@ export const UpdateTodoForm = ({ style }: UpdateTodoFormProps) => {
           // extraInfo
         } = error
 
-        //# Create a helper function for this instead.
-        //# The helper should have its own helper called isFormErrors().
         const formErrors = graphQLErrors.find((error) => {
           return error?.extensions?.code === 'FORM_ERRORS'
         })?.extensions?.formErrors as
@@ -357,7 +355,10 @@ export const UpdateTodoForm = ({ style }: UpdateTodoFormProps) => {
               }}
               onChange={(e) => {
                 setTitle(e.target.value)
-                validateTitle(e.target.value)
+
+                if (titleTouched) {
+                  validateTitle(e.target.value)
+                }
               }}
               placeholder='Title...'
               spellCheck={false}
@@ -390,7 +391,10 @@ export const UpdateTodoForm = ({ style }: UpdateTodoFormProps) => {
               }}
               onChange={(e) => {
                 setBody(e.target.value)
-                validateBody(e.target.value)
+
+                if (bodyTouched) {
+                  validateBody(e.target.value)
+                }
               }}
               placeholder='Optional description...'
               spellCheck={false}
@@ -421,7 +425,10 @@ export const UpdateTodoForm = ({ style }: UpdateTodoFormProps) => {
               }}
               onChange={(e) => {
                 setCompleted(e.target.checked)
-                validateCompleted(e.target.checked)
+
+                if (completedTouched) {
+                  validateCompleted(e.target.checked)
+                }
               }}
               type='checkbox'
             />

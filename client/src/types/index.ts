@@ -35,9 +35,22 @@ export type Session = {
   iat: number
 }
 
-export type User = any
+export type User = {
+  id: string
+  name: string
+  email: string
+  createdAt: string
+  updatedAt: string
+}
 
-export type UnsafeUser = any
+export type UnsafeUser = {
+  id: string
+  name: string
+  email: string
+  role: Role
+  createdAt: string
+  updatedAt: string
+}
 
 export type Todo = {
   id: string

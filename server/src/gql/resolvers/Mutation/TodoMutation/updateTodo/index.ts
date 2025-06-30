@@ -42,7 +42,6 @@ export const updateTodo = authenticate(
     /* ======================
           ObjectId Check
     ====================== */
-
     ///////////////////////////////////////////////////////////////////////////
     //
     // ⚠️ For custom application-level errors, it's recommended to use your own unique codes...

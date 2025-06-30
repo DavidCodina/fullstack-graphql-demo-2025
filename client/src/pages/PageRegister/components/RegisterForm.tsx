@@ -119,8 +119,6 @@ const RegisterForm = () => {
           // extraInfo
         } = error
 
-        //# Create a helper function for this instead.
-        //# The helper should have its own helper called isFormErrors().
         const formErrors = graphQLErrors.find((error) => {
           return error?.extensions?.code === 'FORM_ERRORS'
         })?.extensions?.formErrors as
@@ -370,7 +368,10 @@ const RegisterForm = () => {
           }}
           onChange={(e) => {
             setName(e.target.value)
-            validateName(e.target.value)
+
+            if (nameTouched) {
+              validateName(e.target.value)
+            }
           }}
           placeholder='Name...'
           type='text'
@@ -401,7 +402,10 @@ const RegisterForm = () => {
           }}
           onChange={(e) => {
             setEmail(e.target.value)
-            validateEmail(e.target.value)
+
+            if (emailTouched) {
+              validateEmail(e.target.value)
+            }
           }}
           placeholder='Email...'
           type='email'
@@ -431,16 +435,25 @@ const RegisterForm = () => {
                 setPasswordTouched(true)
               }
               validatePassword(e.target.value)
-              // Call validateConfirmPassword(), passing in both values as args.
-              // This keeps the validation synced at all times.
-              validateConfirmPassword(confirmPassword, e.target.value)
+
+              if (confirmPasswordTouched) {
+                // Call validateConfirmPassword(), passing in both values as args.
+                // This keeps the validation synced at all times.
+                validateConfirmPassword(confirmPassword, e.target.value)
+              }
             }}
             onChange={(e) => {
               setPassword(e.target.value)
-              validatePassword(e.target.value)
-              // Call validateConfirmPassword(), passing in both values as args.
-              // This keeps the validation synced at all times.
-              validateConfirmPassword(confirmPassword, e.target.value)
+
+              if (passwordTouched) {
+                validatePassword(e.target.value)
+              }
+
+              if (confirmPasswordTouched) {
+                // Call validateConfirmPassword(), passing in both values as args.
+                // This keeps the validation synced at all times.
+                validateConfirmPassword(confirmPassword, e.target.value)
+              }
             }}
             placeholder='Password...'
             type={passwordType}
@@ -498,7 +511,10 @@ const RegisterForm = () => {
             }}
             onChange={(e) => {
               setConfirmPassword(e.target.value)
-              validateConfirmPassword(e.target.value)
+
+              if (confirmPasswordTouched) {
+                validateConfirmPassword(e.target.value)
+              }
             }}
             placeholder='Confirm Password...'
             type={confirmPasswordType}

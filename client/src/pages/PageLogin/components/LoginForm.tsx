@@ -249,7 +249,10 @@ const LoginForm = ({ style }: LoginFormProps) => {
             }}
             onChange={(e) => {
               setEmail(e.target.value)
-              validateEmail(e.target.value)
+
+              if (emailTouched) {
+                validateEmail(e.target.value)
+              }
             }}
             placeholder='Email'
             type='email'
@@ -282,7 +285,10 @@ const LoginForm = ({ style }: LoginFormProps) => {
               }}
               onChange={(e) => {
                 setPassword(e.target.value)
-                validatePassword(e.target.value)
+
+                if (passwordTouched) {
+                  validatePassword(e.target.value)
+                }
               }}
               placeholder='Password...'
               type={passwordType}

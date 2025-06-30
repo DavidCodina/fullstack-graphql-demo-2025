@@ -30,18 +30,52 @@ export type AuthContextValue = {
 export const AuthContext = React.createContext({} as AuthContextValue)
 export const AuthConsumer = AuthContext.Consumer
 
-// React.useEffect(() => {
-//   setTimeout(() => {
-//     // console.log('Apollo cache:', client.extract())
-//     const sessionCache = client.readQuery({ query: GET_SESSION })
-//     console.log('GET_SESSION cache:', sessionCache)
-//   }, 3000)
-// }, [])
-
 type AuthProviderProps = {
   children: React.ReactNode
   resetApollo: () => void
 }
+
+//* BroadcastChannel PART 1 : Create a BroadcastChannel for logout events.
+
+///////////////////////////////////////////////////////////////////////////
+//
+// The BroadcastChannel API is a native browser API that allows communication between
+// different browsing contexts (windows, tabs, iframes, or workers) on the same origin.
+// BroadcastChannel has been widely available in all modern browsers since March 2022.
+// It’s considered stable and production-ready for most use cases.
+//
+//   https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API
+//   https://developer.chrome.com/blog/broadcastchannel
+//
+// ⚠️ Browser Support: BroadcastChannel is supported in all modern browsers,
+// but if you need to support older browsers, consider a localStorage fallback.
+//
+/////////////////////////
+//
+// Is Using BroadcastChannel for Login as Common as for Logout?
+//
+// It’s less common to use BroadcastChannel for login than for logout, but it’s not unheard of.
+// It’s more of a “nice-to-have” than a “must-have” for most apps. Why is BroadcastChannel Essential for Logout?
+//
+//   - Security: If you log out in one tab, you want all tabs to immediately clear sensitive data and session state.
+//     Otherwise, you risk leaving a tab “logged in” after the user thinks they’re out. That’s a big security and UX fail.
+//
+//   - Consistency: Prevents weirdness where some tabs are logged out and others aren’t.
+//
+/////////////////////////
+//
+// Do Modern Auth Libraries Use BroadcastChannel for Cross-Tab Logout?
+//
+// Most modern third-party auth libraries do NOT use the BroadcastChannel API directly for cross-tab logout.
+// Instead, they typically rely on the storage event (via localStorage) for cross-tab communication, or they
+// use their own custom mechanisms. The rationale to use the legacy approach is not necessarily because
+// BroadcastChannel is a bad solution, but because auth libraries generally try to support older browsers
+// for maximum compatibility.
+//
+///////////////////////////////////////////////////////////////////////////
+const LOGOUT_CHANNEL = 'apollo-logout'
+const logoutChannel =
+  typeof window !== 'undefined' ? new BroadcastChannel(LOGOUT_CHANNEL) : null
 
 /* ========================================================================
                                 AuthProvider
@@ -241,6 +275,9 @@ export const AuthProvider = ({ children, resetApollo }: AuthProviderProps) => {
     // ❌ client.clearStore()
     resetApollo()
 
+    //* BroadcastChannel PART 2: On logout, post a message to the logoutChannel.
+    logoutChannel?.postMessage('logout') // Notify other tabs
+
     setTimeout(() => {
       setIsLoggingOut(false)
 
@@ -264,6 +301,37 @@ export const AuthProvider = ({ children, resetApollo }: AuthProviderProps) => {
     })
     // console.log('GET_SESSION cache:', client.readQuery({ query: GET_SESSION }))
   }
+
+  /* ======================
+        useEffect()
+  ====================== */
+  //* BroadcastChannel PART 3 : All tabs listen for the message and call resetApollo() when received.
+
+  React.useEffect(() => {
+    if (!logoutChannel) {
+      return
+    }
+
+    // The event listener seems to be only called in non-primary tabs.
+    // That’s expected behavior with BroadcastChannel.
+    // The tab that posts the message does NOT receive its own message.
+    // Only other tabs (listeners) receive the event.
+    // This is by design, so you don’t double-handle the logout in the tab that initiated it.
+    const handleLogoutChannelMessage = () => {
+      resetApollo()
+
+      // Not needed because resetApollo() will wipe cached session data, which will
+      // then trigger PrivateRoutes to redirect if the current route is protected.
+      // ❌ window.location.href = '/login'
+    }
+
+    // The 'message' event is a standard part of the BroadcastChannel spec.
+    // When you call postMessage, all other tabs (except the sender) receive a 'message' event.
+    // The event handler receives a MessageEvent object, which contains the data you sent.
+    logoutChannel.addEventListener('message', handleLogoutChannelMessage)
+    return () =>
+      logoutChannel.removeEventListener('message', handleLogoutChannelMessage)
+  }, [resetApollo])
 
   /* ======================
           return

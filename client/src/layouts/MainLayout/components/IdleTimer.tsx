@@ -1,4 +1,3 @@
-// Third-party imports
 import { Fragment, useEffect, useState } from 'react'
 
 ///////////////////////////////////////////////////////////////////////////
@@ -20,11 +19,9 @@ import { Fragment, useEffect, useState } from 'react'
 ///////////////////////////////////////////////////////////////////////////
 import { useIdleTimer } from 'react-idle-timer'
 
-// Custom imports
 import { useAuthContext } from 'contexts'
 import { ModalSessionTimeout } from './ModalSessionTimeout'
 
-// 1000 * 60 * 60
 const timeout = 60 * 1000 * 60 // Demo only.
 const promptBeforeIdle = 15 * 1000 // Demo only
 
