@@ -19,6 +19,8 @@
 // Adding #graphql to the beginning of a template literal
 // provides GraphQL syntax highlighting in supporting IDEs.
 export const userTypeDefs = `#graphql
+  scalar Upload
+
   # =======================
   #     Entry Points
   # =======================
@@ -73,6 +75,7 @@ export const userTypeDefs = `#graphql
     "Descriptions can also be inserted on the filed level."
     name: String! 
     email: String!
+    image: String
     todos: [Todo!]
     createdAt: String!
     updatedAt: String!
@@ -83,8 +86,9 @@ export const userTypeDefs = `#graphql
     id: ID!
     name: String! 
     email: String!
-    role: Role! 
-    todos: [Todo!]!  
+    role: Role!
+    image: String
+    todos: [Todo!]!
     createdAt: String!
     updatedAt: String!
   }
@@ -123,6 +127,7 @@ export const userTypeDefs = `#graphql
     email: String
     password: String
     confirmPassword: String
+    image: Upload
   }
 
   # =======================

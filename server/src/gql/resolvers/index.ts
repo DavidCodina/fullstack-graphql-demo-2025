@@ -1,3 +1,5 @@
+import GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs'
+
 import Query from './Query/index.js'
 import Mutation from './Mutation/index.js'
 
@@ -13,6 +15,7 @@ import Todo from './Todo'
 // and there's no custom error messages. It's just a different way of doing things...
 
 export const resolvers = {
+  Upload: GraphQLUpload, // 👈 This line makes the Upload scalar work
   Query: Query,
   Mutation: Mutation,
 

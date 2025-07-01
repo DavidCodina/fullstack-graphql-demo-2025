@@ -1,3 +1,4 @@
+import { ReadStream } from 'fs'
 import { GraphQLError } from 'graphql'
 import { ObjectId } from 'mongodb'
 import bcrypt from 'bcryptjs'
@@ -7,6 +8,13 @@ import { authenticate } from '../../../../authenticate' // Avoid circular depend
 import { codes } from '../../../../codes' // Avoid circular dependency with relative import
 import { getUpdateUserSchema } from './getUpdateUserSchema'
 import { User } from 'types'
+
+type _FileUpload = {
+  filename: string
+  mimetype: string
+  encoding: string
+  createReadStream: () => ReadStream
+}
 
 /* ========================================================================
 
@@ -54,7 +62,19 @@ export const updateUser = authenticate(
       })
     }
 
-    const { name, email, password, confirmPassword } = args.input
+    //* image is a new property
+    //* When a file is uploaded via GraphQL, the image field will be a Promise that resolves to a FileUpload object.
+    const { name, email, password, confirmPassword, image } = args.input
+
+    //# See Classed tutorial for a simple upload implementation:
+    //# https://www.youtube.com/watch?v=BcZ_ItGplfE
+    //# He does this using path and fs modules.
+    if (image) {
+      const file = await image // image is a Promise!
+      console.log('Uploaded file:', file)
+      // file.filename, file.mimetype, file.encoding, file.createReadStream()
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     //
     // A client form may initialize field values as ''. If they then inadvertently send those

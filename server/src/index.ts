@@ -4,6 +4,10 @@ import express from 'express'
 import * as dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+// https://www.npmjs.com/package/graphql-upload
+// Note: Use apollo-upload-client on the React side for uploading images.
+// See here: https://www.apollographql.com/docs/react/data/file-uploads
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs'
 // import morgan from 'morgan'
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -240,6 +244,9 @@ dotenv.config()
   /* ======================
       GraphQL Routes
   ====================== */
+
+  //* Add the graphql-upload middleware to your Express app BEFORE the Apollo middleware
+  app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }))
 
   app.use(
     ///////////////////////////////////////////////////////////////////////////
