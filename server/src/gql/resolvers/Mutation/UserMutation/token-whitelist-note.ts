@@ -40,4 +40,21 @@ Cons (?):
     getting the user document from the database. This is just a property on the user document. Thus, in the
     current implementation, we're not adding any extra work for the database.
 
+=========================
+
+=========================
+
+One potential drawback of this system is the need to more carefully manage the `tokens` array.
+For example, it's possible to accumulate a number of expired tokens over time. Ultimately, we'd 
+also need some kind of cleanup process to remove expired tokens. One way to achieve this is through
+a cron job. Another approach would be to perform a check on all tokens when a login occurs. The latter
+approach seems like it would work fine, but has yet to be implemented.
+
+
+
+
+
+
+
+
 */
