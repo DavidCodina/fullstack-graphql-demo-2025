@@ -33,14 +33,14 @@ const models = {
 //
 ///////////////////////////////////////////////////////////////////////////
 
-export type ContextTypeUser = Omit<UserType, 'password' | 'token'>
+export type ContextTypeUser = Omit<UserType, 'password'>
 
 export const createContext = async (
   expressContextFunctionArgument: ExpressContextFunctionArgument
 ) => {
   const { req, res } = expressContextFunctionArgument
 
-  let user: Omit<UserType, 'password' | 'token'> | null = null
+  let user: Omit<UserType, 'password'> | null = null
 
   const userLoader = createUserLoader()
 
@@ -63,11 +63,33 @@ export const createContext = async (
       process.env.ACCESS_TOKEN_SECRET!
     ) as jwt.JwtPayload
 
+    ///////////////////////////////////////////////////////////////////////////
+    //
+    // ❓ We could create and assign a new JWT to the httpOnly cookie here.
+    // This is called a sliding session or "implicit token refresh".
+    // How it’s usually done:
+    //
+    //   - On every request, check if the token is close to expiring (e.g., within 30 minutes).
+    //
+    //   - If so, issue a new token and set it in the cookie.
+    //
+    //   - If not, just proceed as normal.
+    //
+    // Security tradeoff:
+    //
+    //   - If a token is stolen, the attacker can keep refreshing it as long as they're active.
+    //     However, this can be mitigated by having some kind of stateful revocation mechanism.
+    //     Currently, this app uses a `tokens` whitelist. Thus, if we ever chose to create
+    //     a sliding session feature, we'd also need to swap out the old token for the new token
+    //     in the tokens array.
+    //
+    ///////////////////////////////////////////////////////////////////////////
+
     const userId = decoded.id
     // Rather than using the limited user info that's on the decoded token,
     // it's better to use the decoded token to get the actual user from the
     // database, which is the ultimate source of truth.
-    user = await User.findById(userId).select('-password -token').lean().exec()
+    user = await User.findById(userId).select('-password').lean().exec()
 
     return { req, res, models, user, userLoader }
   } catch {

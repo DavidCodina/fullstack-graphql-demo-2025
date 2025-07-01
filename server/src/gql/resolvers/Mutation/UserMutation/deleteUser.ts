@@ -63,7 +63,7 @@ export const deleteUser = authenticate(
     const user = await context.models.User.findById(userId)
       .select({
         password: 0,
-        token: 0
+        tokens: 0
       })
       .exec()
 

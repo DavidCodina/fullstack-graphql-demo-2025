@@ -26,9 +26,10 @@ const userSchema = new Schema<User>(
       enum: ['USER', 'ADMIN'],
       default: 'USER'
     },
-    token: {
-      type: String,
-      required: false
+    tokens: {
+      type: [String],
+      required: true,
+      default: []
     }
   },
   { timestamps: true }

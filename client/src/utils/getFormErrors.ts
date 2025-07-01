@@ -1,6 +1,6 @@
 import { ApolloError } from '@apollo/client'
 
-export type GraphQLErrors = ApolloError['graphQLErrors']
+type GraphQLErrors = ApolloError['graphQLErrors']
 
 export function getFormErrors<T = Record<string, string>>(
   graphQLErrors: GraphQLErrors

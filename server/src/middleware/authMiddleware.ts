@@ -92,7 +92,9 @@ const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     if (decoded && typeof decoded === 'object' && 'id' in decoded) {
       const userId = decoded.id
 
-      const user = await User.findById(userId, '-password -token').lean().exec()
+      const user = await User.findById(userId, '-password -tokens')
+        .lean()
+        .exec()
       if (!user) {
         return res.status(401).json({
           data: null,

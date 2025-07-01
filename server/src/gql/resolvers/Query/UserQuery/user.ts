@@ -53,11 +53,11 @@ export const user: AnyResolver = async (
   // token, or role. Therefore, the projection is not technically necessary.
   // Nor is using select() necessary:
   //
-  //   .select('-token -password')
-  //   .select({ password: 0, token: 0, role: 0 })
+  //   .select('-tokens -password')
+  //   .select({ password: 0, tokens: 0, role: 0 })
   //
   ///////////////////////////////////////////////////////////////////////////
-  const user = await context.models.User.findById(id, '-password -token -role')
+  const user = await context.models.User.findById(id, '-password -tokens -role')
 
   // Existence Check
   // ⚠️ It's crucial that you do an existence check because the type definition for this

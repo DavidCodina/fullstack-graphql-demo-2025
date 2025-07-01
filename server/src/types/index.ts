@@ -36,7 +36,7 @@ export type User = {
   email: string
   password: string
   role: Role
-  token?: string
+  tokens: string[]
   createdAt: string
   updatedAt: string
 }

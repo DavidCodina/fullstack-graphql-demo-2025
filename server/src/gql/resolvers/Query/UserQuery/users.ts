@@ -52,9 +52,9 @@ export const users: AnyResolver = async (
 ): Promise<User[]> => {
   // The type definition for User does not allow querying for password,
   // token, or role. Therefore, the projection is not technically necessary.
-  const users = await context.models.User.find({}, '-password -token -role')
+  const users = await context.models.User.find({}, '-password -tokens -role')
     // Always omit token and password from users. Here, we are implementing
-    // the projection argument, rather than using: .select('-token -password')
+    // the projection argument, rather than using: .select('-tokens -password')
     // Below, .sort({ createdAt: -1 }) will return newest first
     .sort({ createdAt: -1 })
 

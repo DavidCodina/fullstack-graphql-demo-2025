@@ -41,6 +41,12 @@ export const authenticate: Authenticate = (next) => {
     context,
     info
   ) => {
+    const { req } = context
+
+    /* ======================
+        Basic User Check
+    ====================== */
+
     if (!context.user) {
       throw new GraphQLError('Authentication is required.', {
         ///////////////////////////////////////////////////////////////////////////
@@ -56,6 +62,29 @@ export const authenticate: Authenticate = (next) => {
         extensions: { code: codes.UNAUTHORIZED }
       })
     }
+
+    /* ======================
+        Whitelist Check
+    ====================== */
+    // This check ensures that there is a matching token in the user document's tokens array.
+    // The presence of a matching token serves as a whitelist mechanism. Conversely,
+    // if there is no matching token, this indicates that the user has logged out of the
+    // respective session or that the session has been revoked.
+
+    const token = req.cookies.token || ''
+
+    if (
+      !token ||
+      typeof token !== 'string' ||
+      !context.user.tokens ||
+      !Array.isArray(context.user.tokens) ||
+      !context.user.tokens.includes(token)
+    ) {
+      throw new GraphQLError('Whitelist check failed.', {
+        extensions: { code: codes.UNAUTHORIZED }
+      })
+    }
+
     return next(source, args, context as ContextWithUser, info)
   }
 

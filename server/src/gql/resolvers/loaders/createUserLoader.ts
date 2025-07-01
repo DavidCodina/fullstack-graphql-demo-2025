@@ -14,7 +14,7 @@ const batchUsers: BatchLoadFn<string, Array<UserArray>> = async (
   // console.log('ids from batchUsers()', ids)
   const users = await User.find({ _id: { $in: ids } }).select({
     password: 0,
-    token: 0,
+    tokens: 0,
     roles: 0
   }) //.lean()
 

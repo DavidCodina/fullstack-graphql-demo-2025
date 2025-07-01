@@ -63,7 +63,7 @@ const Todo = {
 //   user: async (parent, _args, context) => {
 //     const userId = parent.user
 //
-//     const user = await context.models.User.findById(userId, '-password -token -role').exec() // .select('-password -token -role')
+//     const user = await context.models.User.findById(userId, '-password -tokens -role').exec() // .select('-password -tokens -role')
 //
 //     const time = new Date().toLocaleTimeString(undefined, {
 //       hour: 'numeric',

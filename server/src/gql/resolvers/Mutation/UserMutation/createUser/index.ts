@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 
 import { codes } from '../../../../codes' // Avoid circular dependency with relative import
 import { getZodErrors } from 'utils'
-import { decodeToken, tokenExpiration, cookieOptions } from '../token-utils'
+import { decodeToken, tokenExpiration, getCookieOptions } from '../token-utils'
 import { getCreateUserSchema } from './getCreateUserSchema'
 import { AnyResolver, Session } from 'types'
 
@@ -119,9 +119,9 @@ export const createUser: AnyResolver = async (
 
   const decoded = decodeToken(token, process.env.ACCESS_TOKEN_SECRET!)!
 
-  // If you're ONLY using an access token, then there's no reason
-  // to store it in the databa se.
-  newUser.token = token
+  // JWT is stateless by design. However, `tokens` is being
+  // used as a whitelist mechanism within authenticate.ts
+  newUser.tokens = [token]
 
   // Resave the user now that it has the token
   const savedUser = await newUser.save()
@@ -167,7 +167,7 @@ export const createUser: AnyResolver = async (
   ////////////////////////////////////////////////////////////////////////////
 
   if (res && res.cookie) {
-    res.cookie('token', token, cookieOptions)
+    res.cookie('token', token, getCookieOptions())
   }
 
   // This matches exactly what's in the JWT,

@@ -31,7 +31,7 @@ export const currentUser = authenticate(
     // It's still not a bad idea to omit the password even
     // if it's already omitted from type UnsafeUser.
     const user = await context.models.User.findById(context?.user?._id)
-      .select({ password: 0, token: 0 })
+      .select({ password: 0, tokens: 0 })
       .exec()
 
     // Existence Check

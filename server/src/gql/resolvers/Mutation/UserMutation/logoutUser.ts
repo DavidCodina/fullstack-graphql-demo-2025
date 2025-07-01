@@ -1,4 +1,4 @@
-import { cookieOptions } from './token-utils'
+import { getCookieOptions } from './token-utils'
 import { AnyResolver } from 'types'
 
 /* ========================================================================
@@ -27,11 +27,28 @@ export const logoutUser: AnyResolver = async (
   // user is deleted. This means there won't necessarily be a user at this point. Moreover,
   // as a general practice, this resolver should NOT be wrapped in an authenticate().
   if (user && user._id) {
-    // If the token property does not exist in the document, using $unset
-    // to remove it won’t cause an error. It will simply do nothing.
+    ///////////////////////////////////////////////////////////////////////////
+    //
+    // If user document, then remove the token. The presence of the specific token serves as a whitelist
+    // or stateful revocation mechanism, and its absence signals that the user is logged out
+    // or that their authentication status has been revoked - relative to that specific token.
+    //
+    // The entire feature of keeping tokens in the database is optional, but can be useful.
+    //
+    // Note: previously, I only stored a single token in the database and did this:
+    //
+    //   await context.models.User.updateOne({ _id: user._id }, $unset: { token: 1 } })
+    //
+    // However, in order to suppor granularity of revocation, it makes more sense to
+    // have an array of tokens. This ensures only the current session's token is invalidated,
+    // supporting multiple concurrent sessions (i.e., multiple browser types, multiple devices).
+    //
+    ///////////////////////////////////////////////////////////////////////////
+
+    // $pull removes all instances of token from the tokens array.
     await context.models.User.updateOne(
       { _id: user._id },
-      { $unset: { token: 1 } }
+      { $pull: { tokens: token } }
     )
   }
 
@@ -67,7 +84,7 @@ export const logoutUser: AnyResolver = async (
     // Dave Gray mentions at 23:10 that you have to pass in all of the same options when clearing the cookie.
     // The cookie options MUST MATCH those that it was originally sent with. Some people instead do:
     // res.cookie('token', '', { httpOnly: true, expires: new Date(0) })
-    res?.clearCookie('token', cookieOptions)
+    res?.clearCookie('token', getCookieOptions())
   }
 
   return {

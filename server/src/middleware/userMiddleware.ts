@@ -23,7 +23,7 @@ const userMiddleware = (req: Request, res: Response, next: NextFunction) => {
         ) {
           const userId = decoded._id
 
-          const user = await User.findById(userId, '-password -token')
+          const user = await User.findById(userId, '-password -tokens')
             .lean()
             .exec()
           if (user) {

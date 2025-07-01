@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
 import { LoginUserSchema } from './LoginUserSchema'
-import { decodeToken, tokenExpiration, cookieOptions } from '../token-utils'
+import { decodeToken, tokenExpiration, getCookieOptions } from '../token-utils'
 import { codes } from '../../../../codes' // Avoid circular dependency with relative import
 import { AnyResolver, Session } from 'types'
 
@@ -13,7 +13,7 @@ import { AnyResolver, Session } from 'types'
 ////////////////////////////////////////////////////////////////////////////
 //
 // mutation LoginUser($input: LoginInput!) {
-//   loginUser(input: $input) {
+//   result: loginUser(input: $input) {
 //      id
 //      role
 //      exp
@@ -69,6 +69,10 @@ export const loginUser: AnyResolver = async (
     })
   }
 
+  /* ======================
+        Match Check
+  ====================== */
+
   const isMatch = await bcrypt.compare(password, existingUser.password)
 
   if (!isMatch) {
@@ -96,13 +100,14 @@ export const loginUser: AnyResolver = async (
 
   const decoded = decodeToken(token, process.env.ACCESS_TOKEN_SECRET!)!
 
-  // If you're ONLY using an access token, then there's no reason
-  // to store it in the database.
-  existingUser.token = token
+  // JWT is stateless by design. However, `tokens` is being
+  // used as a whitelist mechanism within authenticate.ts
+  existingUser.tokens = [token, ...existingUser.tokens]
+
   await existingUser.save()
 
   if (res && res.cookie) {
-    res.cookie('token', token, cookieOptions)
+    res.cookie('token', token, getCookieOptions())
   }
 
   // This matches exactly what's in the JWT,
