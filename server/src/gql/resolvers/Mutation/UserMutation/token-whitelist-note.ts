@@ -109,15 +109,15 @@ One of the things that generally confused me about sending both tokens to the cl
 as httpOnly cookies is that they seemed equally exposed since they're both sent with 
 every request.
 
-The idea that is often not discussed is that refresh tokens are generally scoped to a specific 
-path to avoid unnecessary exposure (i.e., '/refresh-token'). This reduces overall CSRF risk, and
-minimizes the attack surface. Conversely, if both tokens are scoped identically, they are equally 
-exposed —which undermines the refresh token’s role as a safer, longer-lived credential.
+The idea that is often overlooked is that refresh tokens are generally supposed to be scoped to 
+a specific path, precisely to avoid unnecessary exposure (i.e., '/refresh-token'). This reduces 
+the overall CSRF risk by minimizing the attack surface. Conversely, if both tokens are scoped identically, 
+they are equally exposed — which undermines the refresh token's role as a safer, longer-lived credential.
 
 Thus, if your refresh token is being sent with the same frequency and exposure as your access token, 
-then its role as a safer, long-lived credential is indeed undermined. At that point, you’re essentially 
-treating both tokens as bearer credentials with similar risk profiles.
-You’ve added complexity (rotation, refresh endpoint) without gaining isolation.
+then its role as a safer, long-lived credential is indeed undermined. At that point, you're essentially 
+treating both tokens as bearer credentials with similar risk profiles. You've added complexity 
+(rotation, refresh endpoint) without gaining isolation.
 
 So... With this in mind, is the original approach just as good?
 In this case, it's arguably better.
@@ -127,8 +127,8 @@ In this case, it's arguably better.
    - It's avoided the complexity of refresh token rotation and reuse detection.
    - It's kept the flow simple and auditable.
 
-If you’re going to send both tokens with equal frequency, then the original long-lived 
-access token + whitelist model is arguably cleaner, more honest, and easier to manage. 
-It might also be more secure to the extent that it's not relying on a false sense of 
-refresh token isolation.
+If you're going to send both tokens with equal frequency, then the original long-lived 
+access token + whitelist pattern is arguably cleaner, more honest, and easier to manage. 
+It might also be more secure to the extent that it's not relying on a confused or misguided 
+sense of refresh token isolation.
 */
