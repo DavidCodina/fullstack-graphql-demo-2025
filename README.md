@@ -8,7 +8,7 @@ The `tokens` array is treated as a whitelist mechanism such that a session's res
 
 In normal access + refresh token implementations, the crucial point that makes the refresh token _safer_ is that it's **scoped to a specific path** (e.g., '/refresh-token' in REST). This minimizes the attack surface and overall CSRF risk. However, it also necessitates additional trips from the server to the client and back to the server again. Conversely, giving both tokens the exact same cookie options defeats the whole point because they are now equally scoped and equally exposed.
 
-In order to avoid the complexity a true refresh token implementation, I've opted for this **hybrid approach**. Overall, this implementation deviates from a fully stateless JWT system, but works well for the current project.
+In order to avoid the complexity of a true refresh token implementation, I've opted for this **hybrid approach**. Overall, this implementation deviates from a fully stateless JWT system, but works well for the current project.
 
 **Comments Disclaimer:** Many files in this project have verbose comments. If this were an actual production app, I would not include so many comments. While they are helpful, they also obscure the natural readability of the code.
 
