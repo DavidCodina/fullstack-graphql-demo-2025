@@ -4,9 +4,15 @@ import express from 'express'
 import * as dotenv from 'dotenv'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+////////////////////////////////////////////////////////////////////////////////
+//
 // https://www.npmjs.com/package/graphql-upload
 // Note: Use apollo-upload-client on the React side for uploading images.
 // See here: https://www.apollographql.com/docs/react/data/file-uploads
+// graphql-upload must be used with an actual Express server.
+// It will not work with just startStandaloneServer.
+//
+////////////////////////////////////////////////////////////////////////////////
 import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs'
 // import morgan from 'morgan'
 
@@ -232,8 +238,19 @@ dotenv.config()
 
   app.use(cors(corsOptions))
 
+  ///////////////////////////////////////////////////////////////////////////
+  //
   // Needed for reading req.body. Setting the limit property can help
   // avoid '413 Payload Too Large' errors. I think by default it's 100kb.
+  //
+  // This will run for every request (including /graphql).
+  // BUT: express.json() only parses requests with Content-Type: application/json.
+  // If the request is multipart/form-data (which file uploads use), it skips parsing and passes the request along untouched.
+  // So, for most setups, having app.use(express.json()) here will not break the
+  // graphqlUploadExpress middlware below.
+  //
+  ///////////////////////////////////////////////////////////////////////////
+
   app.use(express.json({ limit: '50mb' })) // ???
 
   // For handling FormData, but should it be true or false?
@@ -244,8 +261,18 @@ dotenv.config()
   /* ======================
       GraphQL Routes
   ====================== */
+  ///////////////////////////////////////////////////////////////////////////
+  //
+  // Add the graphql-upload middleware to your Express app BEFORE the Apollo middleware.
+  // Note: This middleware should generally be added before express.json() or similar
+  // body parsing middleware. However, because express.json() skips multipart/form-data
+  // it's actually okay to have the global app.use(express.json()) above.
+  // That said, the warning still applies for other body parsers.
+  //
+  // This middleware runs for every request, but only does its thing for multipart/form-data requests.
+  //
+  ///////////////////////////////////////////////////////////////////////////
 
-  //* Add the graphql-upload middleware to your Express app BEFORE the Apollo middleware
   app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }))
 
   app.use(
@@ -265,7 +292,9 @@ dotenv.config()
 
     '/graphql',
     // cors<cors.CorsRequest>(corsOptions),
-    express.json(),
+
+    // Not needed because of the global app.use(express.json()) above.
+    // express.json(),
 
     apolloMiddleware<Context>(server, {
       context: createContext

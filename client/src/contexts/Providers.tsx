@@ -36,7 +36,11 @@ if (!VITE_GRAPHQL_URI) {
 
 const uploadLink = createUploadLink({
   uri: VITE_GRAPHQL_URI,
-  credentials: 'include'
+  credentials: 'include',
+
+  // ⚠️ When configuring your file upload client, you will need to send a non-empty
+  // Apollo-Require-Preflight header or Apollo Server will block the request.
+  headers: { 'Apollo-Require-Preflight': 'true' }
 })
 
 // A utility that generates an ApolloClient instance.

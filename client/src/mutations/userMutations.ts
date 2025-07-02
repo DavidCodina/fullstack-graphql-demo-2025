@@ -19,7 +19,19 @@ export const CREATE_USER = gql`
       UPDATE_USER
 ====================== */
 
-//# ...
+export const UPDATE_USER = gql`
+  mutation UpdateUser($input: UpdateUserInput!) {
+    result: updateUser(input: $input) {
+      id
+      name
+      email
+      image
+      role
+      createdAt
+      updatedAt
+    }
+  }
+`
 
 /* ======================
       DELETE_USER
@@ -31,6 +43,7 @@ export const DELETE_USER = gql`
       id
       name
       email
+      image
       role
       createdAt
       updatedAt

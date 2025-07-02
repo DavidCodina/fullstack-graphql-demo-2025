@@ -44,6 +44,7 @@ export type User = {
   id: string
   name: string
   email: string
+  image?: string
   createdAt: string
   updatedAt: string
 }
@@ -52,6 +53,7 @@ export type UnsafeUser = {
   id: string
   name: string
   email: string
+  image?: string
   role: Role
   createdAt: string
   updatedAt: string

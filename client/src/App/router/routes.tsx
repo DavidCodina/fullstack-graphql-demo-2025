@@ -8,6 +8,8 @@ import PageHome from 'pages/PageHome' // Should NOT be lazy loaded.
 import PageRegister from 'pages/PageRegister'
 import PageLogin from 'pages/PageLogin'
 import PageProfile from 'pages/PageProfile'
+import PageUpdateUser from 'pages/PageUpdateUser'
+
 import PageAdmin from 'pages/PageAdmin'
 import PageTodos from 'pages/todos/PageTodos'
 import PageTodo from 'pages/todos/PageTodo'
@@ -45,6 +47,7 @@ export const routes = createRoutesFromElements(
         }
       >
         <Route path='/profile' element={<PageProfile />} />
+        <Route path='/user/update' element={<PageUpdateUser />} />
 
         <Route path='/todos' element={<PageTodos />} />
         <Route path='/todos/:id' element={<PageTodo />} />

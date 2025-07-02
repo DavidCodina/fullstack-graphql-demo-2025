@@ -1,3 +1,4 @@
+import { ReadStream } from 'fs'
 import mongoose from 'mongoose'
 import { GraphQLFieldResolver /*, GraphQLResolveInfo */ } from 'graphql'
 import { createContext } from '../gql/createContext'
@@ -34,6 +35,7 @@ export type User = {
   _id: mongoose.Types.ObjectId
   name: string
   email: string
+  image?: string
   password: string
   role: Role
   tokens: string[]
@@ -66,3 +68,10 @@ export type ContextWithUser = Omit<Context, 'user'> & {
 
 /** A maximally wide resolver type. */
 export type AnyResolver = GraphQLFieldResolver<any, Context, any>
+
+export type FileUpload = {
+  filename: string
+  mimetype: string
+  encoding: string
+  createReadStream: () => ReadStream
+}

@@ -37,6 +37,7 @@ export const getUpdateUserSchema = ({
       .optional(),
 
     password: z.string().min(5, 'Must be at least 5 characters.').optional(),
+    image: z.string().optional(),
 
     confirmPassword: z
       .string()

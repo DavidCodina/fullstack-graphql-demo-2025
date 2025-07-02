@@ -1,19 +1,26 @@
-import { ReadStream } from 'fs'
+import path from 'path'
+import fs, { ReadStream } from 'fs'
 import { GraphQLError } from 'graphql'
 import { ObjectId } from 'mongodb'
 import bcrypt from 'bcryptjs'
 
-import { getZodErrors } from 'utils'
+import { getZodErrors, isPromise } from 'utils'
 import { authenticate } from '../../../../authenticate' // Avoid circular dependency with relative import
 import { codes } from '../../../../codes' // Avoid circular dependency with relative import
 import { getUpdateUserSchema } from './getUpdateUserSchema'
-import { User } from 'types'
+import { User, FileUpload } from 'types'
 
-type _FileUpload = {
-  filename: string
-  mimetype: string
-  encoding: string
-  createReadStream: () => ReadStream
+const pipeStreamToFile = (
+  stream: ReadStream,
+  pathName: string
+): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const writeStream = fs.createWriteStream(pathName)
+    stream.pipe(writeStream)
+    writeStream.on('finish', resolve)
+    writeStream.on('error', reject)
+    stream.on('error', reject)
+  })
 }
 
 /* ========================================================================
@@ -62,17 +69,68 @@ export const updateUser = authenticate(
       })
     }
 
-    //* image is a new property
-    //* When a file is uploaded via GraphQL, the image field will be a Promise that resolves to a FileUpload object.
-    const { name, email, password, confirmPassword, image } = args.input
+    const {
+      name,
+      email,
+      password,
+      confirmPassword,
+      image: imagePromise
+    } = args.input
 
-    //# See Classed tutorial for a simple upload implementation:
-    //# https://www.youtube.com/watch?v=BcZ_ItGplfE
-    //# He does this using path and fs modules.
-    if (image) {
-      const file = await image // image is a Promise!
-      console.log('Uploaded file:', file)
-      // file.filename, file.mimetype, file.encoding, file.createReadStream()
+    let imageFile: FileUpload | undefined
+    let imageURL: string | undefined
+
+    // See Classed tutorial for a simple upload implementation:
+    // https://www.youtube.com/watch?v=BcZ_ItGplfE
+    // He does this using path and fs modules.
+    if (isPromise<FileUpload>(imagePromise)) {
+      ///////////////////////////////////////////////////////////////////////////
+      //
+      // Example imageFile:
+      //
+      // {
+      //   filename: 'peter.png',
+      //   mimetype: 'image/png',
+      //   encoding: '7bit',
+      //   createReadStream: [Function: createReadStream]
+      // }
+      //
+      ///////////////////////////////////////////////////////////////////////////
+      imageFile = await imagePromise
+
+      if (imageFile) {
+        const stream = imageFile.createReadStream()
+
+        const pathName = path.join(
+          __dirname,
+          `/public/images/${imageFile.filename}`
+        )
+
+        try {
+          ///////////////////////////////////////////////////////////////////////////
+          //
+          // Note: While in development, every single time you save a change it wipes away the
+          // dist folder. This means any files that were created at runtime will be deleted
+          // on every regeneration of dist. This is actually a good thing, but it also means
+          // that you may end up with user.image values that quickly become invalid.
+          //
+          // Saving images to __dirname is generally a bad idea. It's only done here as
+          // a proof of concept to demonstrate that the graphql-upload package works.
+          // In production, you'll likely want to take the image and upload it to S3,
+          // Cloudinary, etc.
+          //
+          ///////////////////////////////////////////////////////////////////////////
+
+          await pipeStreamToFile(stream, pathName)
+
+          imageURL = `${process.env.SERVER_BASE_URL}/images/${imageFile.filename}`
+        } catch (err) {
+          console.error(
+            'File upload failed during the pipeStreamToFile() process:',
+            err
+          )
+        }
+      }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -104,8 +162,8 @@ export const updateUser = authenticate(
     const user = await context.models.User.findById(userId).exec()
 
     /* ======================
-        Existence Check
-  ====================== */
+          Existence Check
+    ====================== */
 
     if (!user) {
       throw new GraphQLError('Resource not found.', {
@@ -132,6 +190,7 @@ export const updateUser = authenticate(
     const validationResult = UpdateUserSchema.safeParse({
       name,
       email,
+      image: imageURL,
       password,
       confirmPassword
     })
@@ -157,8 +216,8 @@ export const updateUser = authenticate(
     const validated = validationResult.data
 
     /* ======================
-        Update User
-  ====================== */
+            Update User
+    ====================== */
     // At this point, we know that the values are not empty strings.
     // However, they may or may not exist since they're optional in
     // the Zod schema.
@@ -168,7 +227,12 @@ export const updateUser = authenticate(
     }
 
     if (validated.email) {
+      // Test
       user.email = validated.email
+    }
+
+    if (validated.image) {
+      user.image = validated.image
     }
 
     if (validated.password) {

@@ -19,7 +19,6 @@
 // Adding #graphql to the beginning of a template literal
 // provides GraphQL syntax highlighting in supporting IDEs.
 export const userTypeDefs = `#graphql
-  scalar Upload
 
   # =======================
   #     Entry Points
@@ -127,6 +126,7 @@ export const userTypeDefs = `#graphql
     email: String
     password: String
     confirmPassword: String
+    # As an alternative, you could also use String and then pass a base64 encoded image.
     image: Upload
   }
 

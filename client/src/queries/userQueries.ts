@@ -6,6 +6,7 @@ const GET_USERS = gql`
       id
       name
       email
+      image
       createdAt
       updatedAt
     }
@@ -18,6 +19,7 @@ const GET_USER = gql`
       id
       name
       email
+      image
       createdAt
       updatedAt
     }
@@ -30,6 +32,7 @@ const GET_CURRENT_USER = gql`
       id
       name
       email
+      image
       role
       createdAt
       updatedAt

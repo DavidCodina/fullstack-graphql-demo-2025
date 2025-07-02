@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@apollo/client'
 import { toast } from 'react-toastify'
 
@@ -21,28 +22,28 @@ type DeleteUserData = {
 ======================================================================== */
 
 const PageProfile = () => {
+  const navigate = useNavigate()
   useTitle('Profile')
   const { logOut } = useAuthContext()
 
-  const {
-    data: currentUser,
-    error,
-    loading
-  } = useQuery<GetCurrentUserData>(GET_CURRENT_USER, {
-    onError(error) {
-      const { graphQLErrors, networkError, clientErrors, protocolErrors } =
-        error
-      if (import.meta.env.DEV === true) {
-        console.log('errors from current user useQuery()')
-        console.log({
-          graphQLErrors,
-          networkError,
-          clientErrors,
-          protocolErrors
-        })
+  const { data, error, loading } = useQuery<GetCurrentUserData>(
+    GET_CURRENT_USER,
+    {
+      onError(error) {
+        const { graphQLErrors, networkError, clientErrors, protocolErrors } =
+          error
+        if (import.meta.env.DEV === true) {
+          console.log('errors from current user useQuery()')
+          console.log({
+            graphQLErrors,
+            networkError,
+            clientErrors,
+            protocolErrors
+          })
+        }
       }
     }
-  })
+  )
 
   /* ======================
 
@@ -120,11 +121,23 @@ const PageProfile = () => {
       )
     }
 
+    const currentUser = data?.result
+
     if (currentUser) {
       return (
-        <pre className='mx-auto max-w-lg rounded-xl border border-neutral-500 bg-white p-4 shadow'>
-          <code>{JSON.stringify(currentUser, null, 2)}</code>
-        </pre>
+        <section className='flex justify-center gap-4'>
+          <pre className='m-0 max-w-lg rounded-xl border border-neutral-500 bg-white p-4 shadow'>
+            <code>{JSON.stringify(currentUser, null, 2)}</code>
+
+            {currentUser.image && (
+              <img
+                className='mx-auto max-w-[200px] rounded-xl border border-neutral-500 shadow'
+                src={currentUser.image}
+                alt='User Profile'
+              />
+            )}
+          </pre>
+        </section>
       )
     }
   }
@@ -165,14 +178,26 @@ const PageProfile = () => {
 
         <HR style={{ marginBottom: 50 }} />
 
-        <Button
-          className='btn-red btn-sm mx-auto mb-6 block'
-          loading={deletingUser}
-          onClick={handleDeleteAccount}
-          style={{ minWidth: 150 }}
-        >
-          Delete Account
-        </Button>
+        <div className='mb-6 flex justify-center gap-4'>
+          <Button
+            className='btn-red btn-sm block'
+            loading={deletingUser}
+            onClick={handleDeleteAccount}
+            style={{ minWidth: 150 }}
+          >
+            Delete Account
+          </Button>
+
+          <Button
+            className='btn-blue btn-sm block'
+            onClick={() => {
+              navigate(`/user/update`)
+            }}
+            style={{ minWidth: 150 }}
+          >
+            Update Account
+          </Button>
+        </div>
 
         {renderCurrentUser()}
       </PageContainer>

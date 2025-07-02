@@ -1,5 +1,6 @@
 import { Response } from 'express'
 export * from './zod'
+export * from './isPromise'
 
 /* ======================
         sleep()
