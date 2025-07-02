@@ -119,12 +119,13 @@ You’ve added complexity (rotation, refresh endpoint) without gaining isolation
 So... With this in mind, is the original approach just as good?
 In this case, it's arguably better.
 
-   - You’re not pretending the refresh token is safer when it’s not.
-   - You’ve centralized session control in a single token list.
-   - You’ve avoided the complexity of refresh token rotation and reuse detection.
-   - You’ve kept the flow simple and auditable.
+   - It's not pretending the refresh token is safer when it’s not.
+   - It has centralized session control in a single token list.
+   - It's avoided the complexity of refresh token rotation and reuse detection.
+   - It's kept the flow simple and auditable.
 
-If you’re going to send both tokens with equal frequency, then your original long-lived access token + whitelist model is cleaner, more honest, and easier to manage. I
-
-
+If you’re going to send both tokens with equal frequency, then the original long-lived 
+access token + whitelist model is arguably cleaner, more honest, and easier to manage. 
+It might be the more secure to the extent that it's not relying on a false sense of 
+refresh token isolation.
 */
