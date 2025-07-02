@@ -81,10 +81,10 @@ Storing the refreshToken server-side allows you to:
 Refresh Flow:
 
   Rather than getting an expired accessToken, sending back a 401, then rquesting a new accessToken,
-  then repeating the original request it may seem easier to simply handle the logic directly within
-  the context BEFORE authenticate.ts runs. That said, this necessitates sending the refreshToken 
-  cookie with equal freqency as the accessToken cookie, which defeats the point. This is discussed 
-  further below.
+  then repeating the original request it may seem easier to simply handle all the logic for issuing 
+  a new accessToken directly within the context, BEFORE authenticate.ts runs. That said, this necessitates 
+  sending the refreshToken httpOnly cookie with equal frequency as the accessToken httpOnly cookie, which 
+  defeats the point. This is discussed further below.
 
 =========================
 
