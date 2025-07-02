@@ -46,4 +46,85 @@ Cons (?):
     a cron job. Another approach would be to perform a check on all tokens when a login occurs. The latter
     approach seems like it would work fine, but has yet to be implemented.
 
+=========================
+  refreshTokens revisited
+=========================
+
+Standard JWT Auth Flow with Refresh Tokens
+
+  1. Credentials (e.g., email + password) are submitted to your /login endpoint.
+
+  2. Creates a short-lived accessToken (e.g., 15 minutes).
+
+  3. Creates a long-lived refreshToken (e.g., 7 days or more).
+
+  4. Store the refreshToken in the database, typically in a RefreshToken model or embedded in the user document.
+     Revoke refresh token to kill session.
+
+  5. Sends both tokens to the client.
+    - accessToken → HttpOnly, Secure, SameSite cookie.
+    - refreshToken → also in an HttpOnly cookie (standard practice), 
+      or optionally stored in-memory on mobile/native clients. 
+
+Why Store the Refresh Token in the Database?
+
+=========================
+
+Storing the refreshToken server-side allows you to:
+
+  - Revoke sessions (e.g., logout, suspicious activity).
+  - Track multiple sessions per user (device-specific refresh tokens).
+  - Rotate tokens securely (detect reuse of old refresh tokens).
+
+=========================
+
+Refresh Flow:
+
+  Rather than getting an expired accessToken, sending back a 401, then rquesting a new accessToken,
+  it's easier to simply handle the logic directly within the context BEFORE authenticate.ts runs.
+
+=========================
+
+Why Send the Refresh Token to the Client at All?
+
+If we're going to store the refreshToken in the database (e.g., user.refreshToken), then why bother sending it to 
+the client in an httpOnly cookie. Why not just send the accessToken only? In other words, if you're already storing 
+the refresh token in the database, it might seem redundant to also send it to the client in an httpOnly cookie. 
+But here's the key:
+
+   - The refresh token is a client-held credential —it proves the client is still authorized to request a new access token.
+
+So even though the server stores a copy (or a hashed version) for validation, the client still needs to present it when the 
+access token expires. Without it, the server has no way to verify that the client is still authenticated.
+
+
+=========================
+
+accessToken exposure vs refreshToken exposure:
+
+One of the things that generally confused me about sending both tokens to the client
+as httpOnly cookies is that they seemed equally exposed since they're both sent with 
+every request.
+
+The idea that is often not discussed is that refresh tokens are generally scoped to a specific 
+path to avoid unnecessary exposure (i.e., '/refresh-token'). This reduces overall CSRF risk, and
+minimizes the attack surface. Conversely, if both tokens are scoped identically, they are equally 
+exposed —which undermines the refresh token’s role as a safer, longer-lived credential.
+
+Thus, if your refresh token is being sent with the same frequency and exposure as your access token, 
+then its role as a safer, long-lived credential is indeed undermined. At that point, you’re essentially 
+treating both tokens as bearer credentials with similar risk profiles.
+You’ve added complexity (rotation, refresh endpoint) without gaining isolation.
+
+So... With this in mind, is the original approach just as good?
+In this case, it's arguably better.
+
+   - You’re not pretending the refresh token is safer when it’s not.
+   - You’ve centralized session control in a single token list.
+   - You’ve avoided the complexity of refresh token rotation and reuse detection.
+   - You’ve kept the flow simple and auditable.
+
+If you’re going to send both tokens with equal frequency, then your original long-lived access token + whitelist model is cleaner, more honest, and easier to manage. I
+
+
 */
