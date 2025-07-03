@@ -29,10 +29,11 @@ const pipeStreamToFile = (
 ///////////////////////////////////////////////////////////////////////////
 //
 // mutation UpdateUser($input: UpdateUserInput!) {
-//   updateUser(input: $input) {
+//   result: updateUser(input: $input) {
 //     id
 //     name
 //     email
+//     image
 //     role
 //     createdAt
 //     updatedAt
@@ -82,7 +83,6 @@ export const updateUser = authenticate(
 
     // See Classed tutorial for a simple upload implementation:
     // https://www.youtube.com/watch?v=BcZ_ItGplfE
-    // He does this using path and fs modules.
     if (isPromise<FileUpload>(imagePromise)) {
       ///////////////////////////////////////////////////////////////////////////
       //

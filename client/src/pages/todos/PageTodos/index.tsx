@@ -144,18 +144,18 @@ const PageTodos = () => {
     loading
     // refetch: refetchTodos
   } = useQuery<GetTodosData>(GET_TODOS, {
-    onError(error) {
-      const { graphQLErrors, networkError, clientErrors, protocolErrors } =
-        error
-      if (import.meta.env.DEV === true) {
-        console.log('errors from todos useQuery()')
-        console.log({
-          graphQLErrors,
-          networkError,
-          clientErrors,
-          protocolErrors
-        })
-      }
+    onError(_error) {
+      // const { graphQLErrors, networkError, clientErrors, protocolErrors } =
+      //   error
+      // if (import.meta.env.DEV === true) {
+      //   console.log('errors from todos useQuery()')
+      //   console.log({
+      //     graphQLErrors,
+      //     networkError,
+      //     clientErrors,
+      //     protocolErrors
+      //   })
+      // }
     }
   })
 
